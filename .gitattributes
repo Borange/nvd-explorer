@@ -1,0 +1,2 @@
+# Keep consistant for platforms
+*.text eol=lf

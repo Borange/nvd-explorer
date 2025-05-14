@@ -1,0 +1,97 @@
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { type UseNvdApi } from '@/hooks/useNvdApi';
+import { BrowserRouter } from 'react-router';
+import userEvent from '@testing-library/user-event';
+import StartPage from '@/pages/StartPage';
+
+const mockUseNvdApi = vi.hoisted(
+	() =>
+		({
+			cveItems: [],
+			loading: false,
+			errorMessage: '',
+			totalResults: 0,
+			startIndex: 0,
+		}) as UseNvdApi,
+);
+
+vi.mock('@/hooks/useNvdApi', () => ({
+	useNvdApi: vi.fn(() => mockUseNvdApi),
+}));
+
+describe('Start page', () => {
+	const setup = () => {
+		return render(<StartPage />, { wrapper: BrowserRouter });
+	};
+
+	test('Start page renders', () => {
+		setup();
+		expect(screen.getByText('NVD Explorer')).toBeInTheDocument();
+		expect(screen.getByRole('searchbox')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
+		expect(screen.queryByTitle('Pagination')).not.toBeInTheDocument();
+	});
+
+	test('Show list of vulnerabilities', async () => {
+		mockUseNvdApi.cveItems = [
+			{
+				id: 'test-id',
+				vulnStatus: 'test-status',
+				descriptions: [{ lang: 'en', value: 'a description' }],
+				lastModified: '2025-04-04T05:04:51.193',
+				published: '2025-04-03T05:03:51.193',
+				references: [],
+			},
+		];
+
+		setup();
+
+		expect(
+			screen.getByRole('cell', { name: 'test-status' }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('cell', { name: 'a description' }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('cell', { name: '2025-04-04' }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('cell', { name: '2025-04-03' }),
+		).toBeInTheDocument();
+
+		await userEvent.click(screen.getByRole('link', { name: 'test-id' }));
+
+		expect(window.location.href).toContain('/details');
+	});
+
+	test('Show loading and hide loading', () => {
+		mockUseNvdApi.loading = true;
+		const { rerender } = setup();
+		expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
+
+		mockUseNvdApi.loading = false;
+		rerender(<StartPage />);
+		expect(screen.getByRole('button', { name: 'Search' })).toBeEnabled();
+	});
+
+	test('Show and hide error message', () => {
+		mockUseNvdApi.errorMessage = 'error message';
+		const { rerender } = setup();
+		expect(screen.getByText('error message')).toBeInTheDocument();
+
+		mockUseNvdApi.errorMessage = '';
+		rerender(<StartPage />);
+		expect(screen.queryByText('error message')).not.toBeInTheDocument();
+	});
+
+	test('Renders pagination', () => {
+		mockUseNvdApi.startIndex = 1;
+		mockUseNvdApi.totalResults = 301;
+		setup();
+
+		expect(screen.getByRole('button', { name: 'page 1' }));
+		expect(screen.getByRole('button', { name: 'Go to page 2' }));
+		expect(screen.getByRole('button', { name: 'Go to page 3' }));
+	});
+});
