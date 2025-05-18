@@ -1,9 +1,9 @@
 import type { CveItem } from '@/api/generated/nvdApiTypes';
 import type { JSONSchemaForNVDVulnerabilityDataAPIVersion222 as NvdRead } from '@/api/generated/nvdApiTypes';
 
-type SearchParams = {
+export type SearchParams = {
 	keywordSearch?: string;
-	startIndex: number;
+	startIndex?: number;
 };
 
 class NvdApiUtils {
