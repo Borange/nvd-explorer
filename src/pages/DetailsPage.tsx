@@ -18,7 +18,7 @@ import {
 import { useLocation, useParams } from 'react-router';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useEffect, useState } from 'react';
-import { formatIsoDate } from '@/utils/dateUtils';
+import { formatDateString } from '@/utils/dateUtils';
 
 export default function DetailsPage() {
 	const params = useParams<{ id: string }>();
@@ -94,7 +94,7 @@ export default function DetailsPage() {
 							dateTime={cve?.published}
 							sx={{ pb: 2, textAlign: 'right' }}
 						>
-							Published: {formatIsoDate(cve.published)}
+							Published: {formatDateString(cve.published)}
 						</Typography>
 
 						{cve?.metrics?.cvssMetricV2 && (

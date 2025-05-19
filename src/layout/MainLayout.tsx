@@ -7,6 +7,8 @@ import {
 	ThemeProvider,
 	Typography,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
 import { Outlet } from 'react-router';
 
 const mainTheme = createTheme({
@@ -36,8 +38,23 @@ const mainTheme = createTheme({
 });
 
 export default function MainLayout() {
+	const location = useLocation();
+	const [title, setTitle] = useState<string>('');
+
+	useEffect(() => {
+		if (location.pathname === '/') {
+			setTitle('National Vulnerability Database Explorer');
+		} else if (location.pathname.includes('/details')) {
+			setTitle(
+				'National Vulnerability Database Explorer | Details | ' +
+					location.pathname.split('/').pop(),
+			);
+		}
+	}, [location]);
+
 	return (
 		<ThemeProvider theme={responsiveFontSizes(mainTheme)}>
+			<title>{title}</title>
 			<CssBaseline />
 			<Container>
 				<Outlet />

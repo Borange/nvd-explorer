@@ -5,11 +5,12 @@ import {
 	TableCell,
 	TableHead,
 	TableRow,
+	Typography,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router';
 import type { CveItem } from '@/api/generated/nvdApiTypes';
 import { useEffect, useState, type JSX } from 'react';
-import { formatIsoDate } from '@/utils/dateUtils';
+import { formatDateString } from '@/utils/dateUtils';
 
 export type Props = {
 	cveItems: CveItem[];
@@ -68,11 +69,23 @@ export function VulnerabilitiesListView({
 							{cve.descriptions.find((desc) => desc.lang === 'en')?.value}
 						</TableCell>
 						<TableCell>{cve.vulnStatus}</TableCell>
-						<TableCell align="right" width={200}>
-							{formatIsoDate(cve.lastModified)}
+						<TableCell align="right" width={150}>
+							<Typography
+								component="time"
+								dateTime={cve.lastModified}
+								variant="body2"
+							>
+								{formatDateString(cve.lastModified)}
+							</Typography>
 						</TableCell>
 						<TableCell align="right" width={150}>
-							{formatIsoDate(cve.published)}
+							<Typography
+								component="time"
+								dateTime={cve.published}
+								variant="body2"
+							>
+								{formatDateString(cve.published)}
+							</Typography>
 						</TableCell>
 					</TableRow>
 				))}

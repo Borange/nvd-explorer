@@ -36,6 +36,7 @@ const verifyErrorState = (nvdApi: UseNvdApi) => {
 describe('useNvdApi', () => {
 	beforeEach(() => {
 		// Mock this as it is not supported js-dom
+		// https://github.com/jsdom/jsdom/issues/1422
 		window.scrollTo = vi.fn();
 	});
 

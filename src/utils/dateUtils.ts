@@ -1,4 +1,4 @@
-export const formatIsoDate = (isoDate: string) => {
+export const formatDateString = (isoDate: string) => {
 	if (!isoDate || isNaN(Date.parse(isoDate))) {
 		return '-';
 	}
