@@ -59,9 +59,13 @@ describe('Start page', () => {
 			},
 		];
 
-		await userEvent.click(screen.getByRole('button'));
+		await userEvent.click(screen.getByRole('button', { name: 'Search' }));
 		expect(useNvdApi).toHaveBeenCalledWith('test', 1);
 		expect(window.location.search).toEqual('?keywordSearch=test&startIndex=1');
+
+		await userEvent.clear(screen.getByRole('searchbox'));
+		await userEvent.click(screen.getByRole('button', { name: 'Search' }));
+		expect(window.location.search).toEqual('?startIndex=1');
 
 		expect(
 			screen.getByRole('cell', { name: 'test-status' }),
@@ -101,18 +105,21 @@ describe('Start page', () => {
 		expect(screen.queryByText('error message')).not.toBeInTheDocument();
 	});
 
-	test('Renders pagination', () => {
+	test('Renders pagination', async () => {
 		mockUseNvdApi.startIndex = 1;
 		mockUseNvdApi.totalResults = 301;
 		setup();
+
+		await userEvent.type(screen.getByRole('searchbox'), 'many');
+		await userEvent.click(screen.getByRole('button', { name: 'Search' }));
 
 		expect(screen.getByRole('button', { name: 'page 1' })).toBeInTheDocument();
 		expect(
 			screen.getByRole('button', { name: 'Go to page 2' }),
 		).toBeInTheDocument();
-		expect(
-			screen.getByRole('button', { name: 'Go to page 3' }),
-		).toBeInTheDocument();
+
+		await userEvent.click(screen.getByRole('button', { name: 'Go to page 3' }));
+		expect(window.location.search).toEqual('?keywordSearch=many&startIndex=3');
 	});
 
 	test('Pagination not rendered', () => {

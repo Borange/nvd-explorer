@@ -15,7 +15,7 @@ import {
 	TableRow,
 	Typography,
 } from '@mui/material';
-import { useLocation, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useEffect, useState } from 'react';
 import { formatDateString } from '@/utils/dateUtils';
@@ -39,24 +39,18 @@ export default function DetailsPage() {
 		}
 	}, [cve]);
 
-	const location = useLocation();
-
-	const breadcrumbs = location.pathname.includes('details')
-		? [
-				<Link underline="hover" key="1" href="/">
-					National Vulnerability Database Explorer
-				</Link>,
-				<Typography key="2" sx={{ color: 'text.primary' }}>
-					{params.id}
-				</Typography>,
-			]
-		: [];
-
 	return (
 		<>
 			<Box component="header" sx={{ mb: 4, mt: 4 }}>
 				<Breadcrumbs separator="›" aria-label="breadcrumb" sx={{ mb: 2 }}>
-					{breadcrumbs}
+					<Link underline="hover" key="1" href="/">
+						National Vulnerability Database Explorer
+					</Link>
+					,
+					<Typography key="2" sx={{ color: 'text.primary' }}>
+						{params.id}
+					</Typography>
+					,
 				</Breadcrumbs>
 				<Typography variant="h4" component="h1" sx={{ mb: 2 }}>
 					Vulnerability {params.id}
