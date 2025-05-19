@@ -45,7 +45,7 @@ class NvdApiUtils {
 				throw new NvdError('Could not find ' + params.keywordSearch, 'info');
 			} else if (response.status >= 400 && response.status < 500) {
 				throw new NvdError(
-					'Could not use the expected search term. Please use another one. If problem exists, please contact support',
+					'Could not use the expected search term. Try again later. If problem exists, please contact support',
 					'warning',
 				);
 			}

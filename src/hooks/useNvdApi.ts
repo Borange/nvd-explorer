@@ -13,7 +13,7 @@ export type UseNvdApi = {
 
 export const useNvdApi = (searchTerm: string, page: number = 0): UseNvdApi => {
 	const [cveItems, setCveItems] = useState<CveItem[]>([]);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [totalResults, setTotalResults] = useState(0);
 	const [startIndex, setStartIndex] = useState(1);
@@ -26,10 +26,13 @@ export const useNvdApi = (searchTerm: string, page: number = 0): UseNvdApi => {
 			setTotalResults(0);
 			setStartIndex(0);
 			window.scrollTo({ top: 0 });
+
+			// NVD documentation specifies startIndex to start at 0. https://nvd.nist.gov/developers/vulnerabilities
+			const nvdStartPosition = Math.max(page - 1, 0);
 			const result = await nvdApiUtils.getVulnerabilities(
 				searchTerm
-					? { keywordSearch: searchTerm, startIndex: page }
-					: { startIndex: page },
+					? { keywordSearch: searchTerm, startIndex: nvdStartPosition }
+					: { startIndex: nvdStartPosition },
 			);
 			setCveItems(result.items);
 			setTotalResults(result.totalResults);

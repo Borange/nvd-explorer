@@ -29,7 +29,11 @@ export function VulnerabilitiesListView({
 		if (loading) {
 			setCaptionText('Loading items for table');
 		} else if (cveItems.length) {
-			setCaptionText(`Vulnerabilities table by searching "${vulnerability}"`);
+			setCaptionText(
+				vulnerability
+					? `Vulnerabilities with search "${vulnerability}"`
+					: 'Vulnerabilities global data',
+			);
 		} else {
 			setCaptionText('No vulnerabilities found');
 		}

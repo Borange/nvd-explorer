@@ -41,9 +41,9 @@ describe('loadApi', () => {
 
 	test.each([
 		{
-			status: 400,
+			status: 403,
 			message:
-				'Could not use the expected search term. Please use another one. If problem exists, please contact support',
+				'Could not use the expected search term. Try again later. If problem exists, please contact support',
 		},
 		{
 			status: 404,

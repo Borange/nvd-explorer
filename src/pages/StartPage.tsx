@@ -66,7 +66,10 @@ export default function StartPage() {
 						type="search"
 						placeholder="Enter a search term"
 						variant="standard"
-						sx={{ pr: 4, width: { xs: 'calc(100% - 40px)', sm: 400 } }}
+						sx={{
+							pr: 4,
+							width: { xs: 'calc(100% - 40px)', sm: 400 },
+						}}
 						inputRef={searchInput}
 						defaultValue={searchTerm}
 					></TextField>
@@ -77,8 +80,13 @@ export default function StartPage() {
 						type="submit"
 						disabled={loading}
 						sx={{
+							transition: 'all 0.5s ease-in-out',
 							position: { xs: 'absolute', sm: 'relative' },
 							right: { xs: '0', sm: 'auto' },
+							'&.Mui-disabled': {
+								background: '#fff',
+								color: '#3f50b5',
+							},
 						}}
 					>
 						<Typography

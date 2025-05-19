@@ -3,6 +3,8 @@ import {
 	Container,
 	createTheme,
 	CssBaseline,
+	GlobalStyles,
+	Link,
 	responsiveFontSizes,
 	ThemeProvider,
 	Typography,
@@ -10,6 +12,14 @@ import {
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { Outlet } from 'react-router';
+
+const genericGlobalStyles = (
+	<GlobalStyles
+		styles={() => ({
+			html: { overflowY: 'scroll' },
+		})}
+	/>
+);
 
 const mainTheme = createTheme({
 	breakpoints: {
@@ -56,13 +66,32 @@ export default function MainLayout() {
 		<ThemeProvider theme={responsiveFontSizes(mainTheme)}>
 			<title>{title}</title>
 			<CssBaseline />
+			{genericGlobalStyles}
 			<Container>
 				<Outlet />
 			</Container>
-			<Box component="footer">
+			<Box
+				component="footer"
+				sx={{
+					backgroundColor: '#fff',
+					position: 'fixed',
+					width: '100%',
+					bottom: 0,
+					left: 0,
+					right: 0,
+					borderTop: '1px solid #eef',
+					padding: 2,
+				}}
+			>
 				<Typography variant="body2" align="center">
-					This product uses data from the NVD API but is not endorsed or
-					certified by the NVD.
+					This product uses data from the{' '}
+					<Link
+						href="https://nvd.nist.gov/developers/vulnerabilities"
+						title="NVD API, opens in a new window"
+					>
+						NVD API
+					</Link>{' '}
+					but is not endorsed or certified by the NVD.
 				</Typography>
 			</Box>
 		</ThemeProvider>
