@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { type UseNvdApi } from '@/hooks/useNvdApi';
+import { useNvdApi, type UseNvdApi } from '@/hooks/useNvdApi';
 import { BrowserRouter } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import StartPage from '@/pages/StartPage';
@@ -25,15 +25,30 @@ describe('Start page', () => {
 		return render(<StartPage />, { wrapper: BrowserRouter });
 	};
 
+	afterEach(() => {
+		mockUseNvdApi.cveItems = [];
+		mockUseNvdApi.loading = false;
+		mockUseNvdApi.errorMessage = '';
+		mockUseNvdApi.totalResults = 0;
+		mockUseNvdApi.startIndex = 0;
+	});
+
 	test('Start page renders', () => {
 		setup();
-		expect(screen.getByText('NVD Explorer')).toBeInTheDocument();
+		expect(
+			screen.getByText('National Vulnerability Database Explorer'),
+		).toBeInTheDocument();
 		expect(screen.getByRole('searchbox')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument();
 		expect(screen.queryByTitle('Pagination')).not.toBeInTheDocument();
 	});
 
 	test('Show list of vulnerabilities', async () => {
+		setup();
+
+		await userEvent.type(screen.getByRole('searchbox'), 'test');
+		expect(useNvdApi).toHaveBeenCalledOnce();
+
 		mockUseNvdApi.cveItems = [
 			{
 				id: 'test-id',
@@ -45,7 +60,8 @@ describe('Start page', () => {
 			},
 		];
 
-		setup();
+		await userEvent.click(screen.getByRole('button'));
+		expect(useNvdApi).toHaveBeenCalledTimes(2);
 
 		expect(
 			screen.getByRole('cell', { name: 'test-status' }),
@@ -68,7 +84,7 @@ describe('Start page', () => {
 	test('Show loading and hide loading', () => {
 		mockUseNvdApi.loading = true;
 		const { rerender } = setup();
-		expect(screen.getByRole('button', { name: 'Search' })).toBeDisabled();
+		expect(screen.getByRole('button', { name: 'Searching...' })).toBeDisabled();
 
 		mockUseNvdApi.loading = false;
 		rerender(<StartPage />);
@@ -90,8 +106,22 @@ describe('Start page', () => {
 		mockUseNvdApi.totalResults = 301;
 		setup();
 
-		expect(screen.getByRole('button', { name: 'page 1' }));
-		expect(screen.getByRole('button', { name: 'Go to page 2' }));
-		expect(screen.getByRole('button', { name: 'Go to page 3' }));
+		expect(screen.getByRole('button', { name: 'page 1' })).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: 'Go to page 2' }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('button', { name: 'Go to page 3' }),
+		).toBeInTheDocument();
+	});
+
+	test('Pagination not rendered', () => {
+		mockUseNvdApi.startIndex = 1;
+		mockUseNvdApi.totalResults = 99;
+		setup();
+
+		expect(
+			screen.queryByRole('button', { name: 'page 1' }),
+		).not.toBeInTheDocument();
 	});
 });

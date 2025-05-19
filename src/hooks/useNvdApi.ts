@@ -1,11 +1,12 @@
 import type { CveItem } from '@/api/generated/nvdApiTypes';
-import { nvdApiUtils } from '@/utils/nvdApiUtils';
+import { nvdApiUtils, NvdError, type NvdErrorType } from '@/utils/nvdApiUtils';
 import { useCallback, useEffect, useState } from 'react';
 
 export type UseNvdApi = {
 	cveItems: CveItem[];
 	loading: boolean;
 	errorMessage: string;
+	errorType?: NvdErrorType;
 	totalResults: number;
 	startIndex: number;
 };
@@ -16,12 +17,15 @@ export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
 	const [errorMessage, setErrorMessage] = useState('');
 	const [totalResults, setTotalResults] = useState(0);
 	const [startIndex, setStartIndex] = useState(1);
+	const [errorType, setErrorType] = useState<NvdErrorType>();
 
 	const fetchData = useCallback(async () => {
 		try {
 			setLoading(true);
 			setErrorMessage('');
-			window.scroll({ behavior: 'instant', top: 0 });
+			setTotalResults(0);
+			setStartIndex(0);
+			window.scrollTo({ top: 0 });
 			const result = await nvdApiUtils.getVulnerabilities(
 				searchTerm
 					? { keywordSearch: searchTerm, startIndex: start }
@@ -31,8 +35,13 @@ export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
 			setTotalResults(result.totalResults);
 			setStartIndex(result.startIndex);
 			setLoading(false);
-		} catch {
-			setErrorMessage('An unexpected error happened. Please contact support.');
+		} catch (error) {
+			setErrorMessage(
+				error instanceof NvdError
+					? error.message
+					: 'Unexpected error happened. Contact support.',
+			);
+			setErrorType(error instanceof NvdError ? error.type : 'error');
 			setLoading(false);
 		}
 	}, [searchTerm, start]);
@@ -41,5 +50,12 @@ export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
 		fetchData();
 	}, [fetchData]);
 
-	return { cveItems, loading, errorMessage, totalResults, startIndex };
+	return {
+		cveItems,
+		loading,
+		errorType,
+		errorMessage,
+		totalResults,
+		startIndex,
+	};
 };

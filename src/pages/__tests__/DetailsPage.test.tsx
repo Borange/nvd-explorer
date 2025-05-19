@@ -26,7 +26,20 @@ describe('Details page', () => {
 		return render(<RouterProvider router={createBrowserRouter(routes)} />);
 	};
 
-	test('Details page renders', () => {
+	afterEach(() => {
+		mockUseNvdApi.cveItems = [];
+		mockUseNvdApi.errorMessage = '';
+		mockUseNvdApi.loading = false;
+	});
+
+	test('Show loader', () => {
+		mockUseNvdApi.loading = true;
+		setup();
+
+		expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+	});
+
+	test('Displays detailed information', () => {
 		mockUseNvdApi.cveItems = [
 			{
 				id: 'test-id',
@@ -52,7 +65,9 @@ describe('Details page', () => {
 
 		setup();
 		expect(
-			screen.getByRole('link', { name: 'NVD Explorer' }),
+			screen.getByRole('link', {
+				name: 'National Vulnerability Database Explorer',
+			}),
 		).toBeInTheDocument();
 		expect(screen.getByText('Vulnerability test-id')).toBeInTheDocument();
 		expect(screen.getByText('Status: test-status')).toBeInTheDocument();
@@ -61,5 +76,15 @@ describe('Details page', () => {
 		expect(
 			screen.getByRole('link', { name: 'https://localhost.local' }),
 		).toBeInTheDocument();
+	});
+
+	test('Show error', () => {
+		mockUseNvdApi.loading = false;
+		mockUseNvdApi.errorMessage = 'error message';
+		mockUseNvdApi.cveItems = [];
+		setup();
+
+		expect(screen.getByText('error message')).toBeInTheDocument();
+		mockUseNvdApi.loading = false;
 	});
 });

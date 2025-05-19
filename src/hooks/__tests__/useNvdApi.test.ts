@@ -1,24 +1,46 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { useNvdApi } from '@/hooks/useNvdApi';
+import { useNvdApi, type UseNvdApi } from '@/hooks/useNvdApi';
 import '@testing-library/jest-dom';
+import { NvdError, type NvdErrorType } from '@/utils/nvdApiUtils';
 
 const mockNvdApiUtils = vi.hoisted(() => ({
 	getVulnerabilities: vi.fn(),
+	loadApi: vi.fn(),
+	paramsToString: vi.fn(),
 }));
 
-vi.mock('@/utils/nvdApiUtils', () => ({
-	nvdApiUtils: mockNvdApiUtils,
-}));
+vi.mock(import('@/utils/nvdApiUtils'), async (importOriginal) => {
+	const actual = await importOriginal();
+	return {
+		...actual,
+		nvdApiUtils: mockNvdApiUtils,
+	};
+});
+
+const verifyInitialState = (nvdApi: UseNvdApi) => {
+	expect(nvdApi.cveItems).toHaveLength(0);
+	expect(nvdApi.errorMessage).toEqual('');
+	expect(nvdApi.loading).toEqual(true);
+	expect(nvdApi.startIndex).toEqual(0);
+	expect(nvdApi.totalResults).toEqual(0);
+	expect(nvdApi.errorType).toBeUndefined();
+};
+
+const verifyErrorState = (nvdApi: UseNvdApi) => {
+	expect(nvdApi.cveItems).toHaveLength(0);
+	expect(nvdApi.loading).toEqual(false);
+	expect(nvdApi.startIndex).toEqual(0);
+	expect(nvdApi.totalResults).toEqual(0);
+};
 
 describe('useNvdApi', () => {
-	const windowScroll = window.scroll; // Mock this as it is not supported js-dom
-
-	beforeAll(() => {
-		window.scroll = vi.fn();
+	beforeEach(() => {
+		// Mock this as it is not supported js-dom
+		window.scrollTo = vi.fn();
 	});
 
-	afterAll(() => {
-		window.scroll = windowScroll;
+	afterEach(() => {
+		vi.clearAllMocks();
 	});
 
 	test('Make API call and return a valid response', async () => {
@@ -38,11 +60,7 @@ describe('useNvdApi', () => {
 		});
 
 		const { result } = renderHook(() => useNvdApi(''));
-		expect(result.current.cveItems).toHaveLength(0);
-		expect(result.current.errorMessage).toEqual('');
-		expect(result.current.loading).toEqual(true);
-		expect(result.current.startIndex).toEqual(1);
-		expect(result.current.totalResults).toEqual(0);
+		verifyInitialState(result.current);
 
 		await waitFor(() => {
 			expect(result.current.cveItems).toHaveLength(1);
@@ -50,6 +68,7 @@ describe('useNvdApi', () => {
 			expect(result.current.loading).toEqual(false);
 			expect(result.current.startIndex).toEqual(1);
 			expect(result.current.totalResults).toEqual(1);
+			expect(result.current.errorType).toBeUndefined();
 		});
 	});
 
@@ -57,20 +76,33 @@ describe('useNvdApi', () => {
 		mockNvdApiUtils.getVulnerabilities.mockRejectedValue(new Error('error'));
 
 		const { result } = renderHook(() => useNvdApi(''));
-		expect(result.current.cveItems).toHaveLength(0);
-		expect(result.current.errorMessage).toEqual('');
-		expect(result.current.loading).toEqual(true);
-		expect(result.current.startIndex).toEqual(1);
-		expect(result.current.totalResults).toEqual(0);
+		verifyInitialState(result.current);
 
 		await waitFor(() => {
-			expect(result.current.cveItems).toHaveLength(0);
 			expect(result.current.errorMessage).toEqual(
-				'An unexpected error happened. Please contact support.',
+				'Unexpected error happened. Contact support.',
 			);
-			expect(result.current.loading).toEqual(false);
-			expect(result.current.startIndex).toEqual(1);
-			expect(result.current.totalResults).toEqual(0);
+			expect(result.current.errorType).toEqual('error');
+			verifyErrorState(result.current);
+		});
+	});
+
+	test.each([
+		{ message: 'Keyword search too broad', type: 'info' },
+		{ message: 'You are unauthorized', type: 'warning' },
+		{ message: 'Internal server error', type: 'error' },
+	])('Handle error in API call and return %s', async ({ message, type }) => {
+		mockNvdApiUtils.getVulnerabilities.mockRejectedValue(
+			new NvdError(message, type as NvdErrorType),
+		);
+
+		const { result } = renderHook(() => useNvdApi(''));
+		verifyInitialState(result.current);
+
+		await waitFor(() => {
+			expect(result.current.errorMessage).toEqual(message);
+			expect(result.current.errorType).toEqual(type);
+			verifyErrorState(result.current);
 		});
 	});
 });

@@ -12,17 +12,27 @@ const verifyTableHeaders = (names: string[]): void => {
 	}
 };
 
+const defaultProps: Props = {
+	cveItems: [],
+	loading: false,
+	vulnerability: 'test',
+};
+
 describe('VulnerabilitiesListView', () => {
-	const setup = (props: Props = { cveItems: [] }) => {
+	const setup = (props: Props) => {
 		return render(
 			<BrowserRouter>
-				<VulnerabilitiesListView cveItems={props.cveItems} />
+				<VulnerabilitiesListView
+					cveItems={props.cveItems}
+					loading={props.loading}
+					vulnerability={props.vulnerability}
+				/>
 			</BrowserRouter>,
 		);
 	};
 
 	test('Render table empty table', () => {
-		setup();
+		setup({ ...defaultProps });
 
 		verifyTableHeaders([
 			'Vulnerabilities',
@@ -35,6 +45,7 @@ describe('VulnerabilitiesListView', () => {
 
 	test('Render table with results', () => {
 		setup({
+			...defaultProps,
 			cveItems: [
 				{
 					id: 'test-id',

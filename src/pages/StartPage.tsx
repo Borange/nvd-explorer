@@ -18,14 +18,20 @@ export default function StartPage() {
 	const searchInput = useRef<HTMLInputElement>(null);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [page, setPage] = useState<number>(1);
-	const { loading, cveItems, errorMessage, totalResults, startIndex } =
-		useNvdApi(searchTerm, page);
+	const {
+		loading,
+		cveItems,
+		errorMessage,
+		errorType,
+		totalResults,
+		startIndex,
+	} = useNvdApi(searchTerm, page);
 
 	return (
 		<>
 			<Box component="header" sx={{ mb: 4, mt: 4 }}>
 				<Typography variant="h4" component="h1" sx={{ mb: 2 }}>
-					NVD Explorer
+					National Vulnerability Database Explorer
 				</Typography>
 			</Box>
 			<Grid component="main">
@@ -35,6 +41,7 @@ export default function StartPage() {
 					onSubmit={(event) => {
 						event.preventDefault();
 						setSearchTerm(searchInput.current?.value as string);
+						setPage(1);
 					}}
 					sx={{ mb: 4 }}
 				>
@@ -42,7 +49,7 @@ export default function StartPage() {
 						type="search"
 						placeholder="Enter a search term"
 						variant="standard"
-						sx={{ pr: 4, width: 400 }}
+						sx={{ pr: 4, width: { xs: 'calc(100% - 40px)', sm: 400 } }}
 						inputRef={searchInput}
 					></TextField>
 					<Button
@@ -51,13 +58,25 @@ export default function StartPage() {
 						endIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
 						type="submit"
 						disabled={loading}
+						sx={{
+							position: { xs: 'absolute', sm: 'relative' },
+							right: { xs: '0', sm: 'auto' },
+						}}
 					>
-						Search
+						<Typography
+							sx={{
+								overflow: 'hidden',
+								width: { xs: 0, sm: 'auto' },
+								opacity: { xs: 0, sm: 1 },
+							}}
+						>
+							{loading ? 'Searching...' : 'Search'}
+						</Typography>
 					</Button>
 				</Grid>
 				<Grid size={12}>
 					{errorMessage ? (
-						<Alert variant="standard" severity="error">
+						<Alert variant="standard" severity={errorType}>
 							{errorMessage}
 						</Alert>
 					) : (
@@ -67,14 +86,18 @@ export default function StartPage() {
 								transition: 'opacity 0.2s ease-in-out',
 							}}
 						>
-							<VulnerabilitiesListView cveItems={cveItems} />
+							<VulnerabilitiesListView
+								cveItems={cveItems}
+								vulnerability={searchTerm}
+								loading={loading}
+							/>
 						</Box>
 					)}
 					<Stack
 						spacing={2}
 						sx={{ mt: 4, mb: 12, display: 'flex', alignItems: 'center' }}
 					>
-						{totalResults > 0 && (
+						{totalResults > 100 && (
 							<Pagination
 								aria-label="Pagination"
 								count={Math.floor(totalResults / 100)}
@@ -82,6 +105,7 @@ export default function StartPage() {
 								onChange={(_, number) => {
 									setPage(number);
 								}}
+								color="primary"
 							/>
 						)}
 					</Stack>

@@ -1,27 +1,50 @@
 import { useNvdApi } from '@/hooks/useNvdApi';
 import {
+	Alert,
 	Box,
 	Breadcrumbs,
+	CircularProgress,
 	Grid,
 	Link,
 	List,
 	ListItem,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableRow,
 	Typography,
 } from '@mui/material';
 import { useLocation, useParams } from 'react-router';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useEffect, useState } from 'react';
+import { formatIsoDate } from '@/utils/dateUtils';
 
 export default function DetailsPage() {
 	const params = useParams<{ id: string }>();
-	const { cveItems, loading } = useNvdApi(params.id as string);
+	const { cveItems, loading, errorMessage, errorType } = useNvdApi(
+		params.id as string,
+	);
 	const [cve] = cveItems;
+	const [references, setReferences] = useState<string[]>([]);
+
+	useEffect(() => {
+		if (cve?.references) {
+			// As multiple sources can point to the same link, the urls reference are made unique.
+			// IE. not the same URL should show twice.
+			const result = Array.from(
+				new Set(cve?.references.map((item) => item.url)),
+			);
+			setReferences(result);
+		}
+	}, [cve]);
 
 	const location = useLocation();
 
 	const breadcrumbs = location.pathname.includes('details')
 		? [
-				<Link underline="hover" key="1" color="inherit" href="/">
-					NVD Explorer
+				<Link underline="hover" key="1" href="/">
+					National Vulnerability Database Explorer
 				</Link>,
 				<Typography key="2" sx={{ color: 'text.primary' }}>
 					{params.id}
@@ -40,11 +63,24 @@ export default function DetailsPage() {
 				</Typography>
 			</Box>
 			{loading ? (
-				<>Loading</>
-			) : (
+				<Grid
+					sx={{
+						display: 'flex',
+						width: '100%',
+						height: '50vh',
+						justifyContent: 'center',
+						alignItems: 'center',
+					}}
+				>
+					<CircularProgress aria-label="Loading" />
+				</Grid>
+			) : cve ? (
 				<>
 					<Grid component="main">
-						<Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+						<Typography
+							variant="body2"
+							sx={{ fontWeight: 'bold', mb: 2, display: 'block' }}
+						>
 							Status: {cve?.vulnStatus}
 						</Typography>
 
@@ -58,65 +94,52 @@ export default function DetailsPage() {
 							dateTime={cve?.published}
 							sx={{ pb: 2, textAlign: 'right' }}
 						>
-							Published:{' '}
-							{cve?.published
-								? new Date(cve?.published).toISOString().split('T')[0]
-								: '-'}
+							Published: {formatIsoDate(cve.published)}
 						</Typography>
 
 						{cve?.metrics?.cvssMetricV2 && (
 							<>
-								<Typography variant="h6" component="h3" sx={{ mt: 4 }}>
+								<Typography variant="h6" component="h3" sx={{ mt: 4, mb: 2 }}>
 									Metrics
 								</Typography>
-
-								<List dense={true} sx={{ listStyleType: 'disc' }}>
-									{cve?.metrics?.cvssMetricV2?.map((metric, index) => {
-										return (
-											<ListItem
-												key={index}
-												sx={{
-													display: 'list-item',
-													listStylePosition: 'inside',
-												}}
-											>
-												{metric.type} {metric.source} {metric.baseSeverity}{' '}
-												{metric.exploitabilityScore} / {metric.impactScore}
-											</ListItem>
-										);
-									})}
-								</List>
-							</>
-						)}
-
-						{cve?.vendorComments && (
-							<>
-								<Typography variant="h6" component="h3" sx={{ mt: 4 }}>
-									Vendor comments
-								</Typography>
-								<List dense={true} sx={{ listStyleType: 'disc' }}>
-									{cve?.vendorComments.map((vendorComment, index) => {
-										return (
-											<ListItem
-												key={index}
-												sx={{
-													display: 'list-item',
-													listStylePosition: 'inside',
-												}}
-											>
-												<Typography variant="h6">
-													{vendorComment.organization}
-												</Typography>
-												<Typography variant="body1">
-													{vendorComment.comment}
-												</Typography>
-												<Typography variant="body1" component="time">
-													{vendorComment.lastModified}
-												</Typography>
-											</ListItem>
-										);
-									})}
-								</List>
+								<Table>
+									<TableHead>
+										<TableRow>
+											<TableCell>
+												<b>Type</b>
+											</TableCell>
+											<TableCell>
+												<b>Source</b>
+											</TableCell>
+											<TableCell>
+												<b>Severity</b>
+											</TableCell>
+											<TableCell>
+												<b>Exploit score</b>
+											</TableCell>
+											<TableCell align="right">
+												<b>Impact score</b>
+											</TableCell>
+										</TableRow>
+									</TableHead>
+									<TableBody>
+										{cve?.metrics?.cvssMetricV2?.map((metric, index) => (
+											<TableRow key={index}>
+												<TableCell component="th" scope="row" width={200}>
+													{metric.type}
+												</TableCell>
+												<TableCell>{metric.source}</TableCell>
+												<TableCell>{metric.baseSeverity}</TableCell>
+												<TableCell width={150}>
+													{metric.exploitabilityScore}
+												</TableCell>
+												<TableCell align="right" width={150}>
+													{metric.impactScore}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
 							</>
 						)}
 
@@ -124,7 +147,7 @@ export default function DetailsPage() {
 							References
 						</Typography>
 						<List dense={true} sx={{ listStyleType: 'disc' }}>
-							{cve?.references.map((link, index) => {
+							{references.map((link, index) => {
 								return (
 									<ListItem
 										key={index}
@@ -132,11 +155,11 @@ export default function DetailsPage() {
 									>
 										<Link
 											component="a"
-											href={link.url}
+											href={link}
 											target="_blank"
-											title={`${link.url} opens in a new window`}
+											title={`${link} opens in a new window`}
 										>
-											{link.url}
+											{link}
 											<OpenInNewIcon
 												color="primary"
 												sx={{
@@ -152,7 +175,11 @@ export default function DetailsPage() {
 						</List>
 					</Grid>
 				</>
-			)}
+			) : errorMessage ? (
+				<Alert variant="standard" severity={errorType}>
+					{errorMessage}
+				</Alert>
+			) : null}
 		</>
 	);
 }

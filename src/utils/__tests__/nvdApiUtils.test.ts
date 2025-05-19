@@ -35,20 +35,39 @@ describe('loadApi', () => {
 			json: vi.fn().mockResolvedValue({ version: '2.0' } as NvdRead),
 		});
 
-		const response = await nvdApiUtils.loadAPi({ keywordSearch: 'test' });
+		const response = await nvdApiUtils.loadApi({ keywordSearch: 'test' });
 		expect(response).toEqual({ version: '2.0' });
 	});
 
-	test('throws error if a request had an error', async () => {
-		window.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			statusText: 'error',
+	test.each([
+		{
+			status: 400,
+			message:
+				'Could not use the expected search term. Please use another one. If problem exists, please contact support',
+		},
+		{
+			status: 404,
+			message: 'Could not find test',
+		},
+		{
 			status: 500,
-		});
-		await expect(
-			nvdApiUtils.loadAPi({ keywordSearch: 'test' }),
-		).rejects.toThrow('error');
-	});
+			message: 'An unexpected error happened. Please contact support.',
+		},
+	])(
+		'throws error if a request had an error %s',
+
+		async ({ status, message }) => {
+			window.fetch = vi.fn().mockResolvedValue({
+				ok: false,
+				statusText: 'error',
+				status: status,
+			});
+			console.error = vi.fn();
+			await expect(
+				nvdApiUtils.loadApi({ keywordSearch: 'test' }),
+			).rejects.toThrow(message);
+		},
+	);
 });
 
 describe('getVulnerabilities', () => {
@@ -81,7 +100,7 @@ describe('getVulnerabilities', () => {
 			status: 500,
 		});
 		await expect(
-			nvdApiUtils.loadAPi({ keywordSearch: 'test' }),
+			nvdApiUtils.getVulnerabilities({ keywordSearch: 'test' }),
 		).rejects.toThrow('error');
 	});
 });

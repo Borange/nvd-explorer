@@ -1,17 +1,4 @@
-# NVD Viewer
+# National Vulnerability Database Explorer
 
-TODO:
-
-- Add tests
-
----
-
-- TableView
-- Util
-
----
-
-- Design fixes, at least try
-- Responsiveness
-- Cleanup
+- README
 - Done
