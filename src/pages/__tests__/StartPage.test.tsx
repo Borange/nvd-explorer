@@ -47,7 +47,6 @@ describe('Start page', () => {
 		setup();
 
 		await userEvent.type(screen.getByRole('searchbox'), 'test');
-		expect(useNvdApi).toHaveBeenCalledOnce();
 
 		mockUseNvdApi.cveItems = [
 			{
@@ -61,7 +60,8 @@ describe('Start page', () => {
 		];
 
 		await userEvent.click(screen.getByRole('button'));
-		expect(useNvdApi).toHaveBeenCalledTimes(2);
+		expect(useNvdApi).toHaveBeenCalledWith('test', 1);
+		expect(window.location.search).toEqual('?keywordSearch=test&startIndex=1');
 
 		expect(
 			screen.getByRole('cell', { name: 'test-status' }),

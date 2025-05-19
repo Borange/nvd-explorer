@@ -11,7 +11,7 @@ export type UseNvdApi = {
 	startIndex: number;
 };
 
-export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
+export const useNvdApi = (searchTerm: string, page: number = 0): UseNvdApi => {
 	const [cveItems, setCveItems] = useState<CveItem[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
@@ -28,8 +28,8 @@ export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
 			window.scrollTo({ top: 0 });
 			const result = await nvdApiUtils.getVulnerabilities(
 				searchTerm
-					? { keywordSearch: searchTerm, startIndex: start }
-					: { startIndex: start },
+					? { keywordSearch: searchTerm, startIndex: page }
+					: { startIndex: page },
 			);
 			setCveItems(result.items);
 			setTotalResults(result.totalResults);
@@ -44,7 +44,7 @@ export const useNvdApi = (searchTerm: string, start: number = 0): UseNvdApi => {
 			setErrorType(error instanceof NvdError ? error.type : 'error');
 			setLoading(false);
 		}
-	}, [searchTerm, start]);
+	}, [searchTerm, page]);
 
 	useEffect(() => {
 		fetchData();

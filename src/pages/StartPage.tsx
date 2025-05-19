@@ -10,14 +10,20 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VulnerabilitiesListView } from '@/components/tables/VulnerabilitiesListView';
 import { useNvdApi } from '@/hooks/useNvdApi';
+import { createSearchParams, useSearchParams } from 'react-router';
 
 export default function StartPage() {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const searchInput = useRef<HTMLInputElement>(null);
-	const [searchTerm, setSearchTerm] = useState('');
-	const [page, setPage] = useState<number>(1);
+	const [searchTerm, setSearchTerm] = useState(
+		searchParams.get('keywordSearch') || '',
+	);
+	const [page, setPage] = useState<number>(
+		Number(searchParams.get('startIndex')) || 1,
+	);
 	const {
 		loading,
 		cveItems,
@@ -26,6 +32,17 @@ export default function StartPage() {
 		totalResults,
 		startIndex,
 	} = useNvdApi(searchTerm, page);
+
+	useEffect(() => {
+		const params = searchTerm
+			? createSearchParams({
+					keywordSearch: searchTerm,
+					startIndex: String(page || 1),
+				})
+			: createSearchParams({ startIndex: String(page || 1) });
+
+		setSearchParams(params);
+	}, [searchTerm, setSearchParams, page]);
 
 	return (
 		<>
@@ -51,6 +68,7 @@ export default function StartPage() {
 						variant="standard"
 						sx={{ pr: 4, width: { xs: 'calc(100% - 40px)', sm: 400 } }}
 						inputRef={searchInput}
+						defaultValue={searchTerm}
 					></TextField>
 					<Button
 						variant="contained"
