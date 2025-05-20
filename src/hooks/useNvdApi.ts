@@ -3,62 +3,62 @@ import { nvdApiUtils, NvdError, type NvdErrorType } from '@/utils/nvdApiUtils';
 import { useCallback, useEffect, useState } from 'react';
 
 export type UseNvdApi = {
-	cveItems: CveItem[];
-	loading: boolean;
-	errorMessage: string;
-	errorType?: NvdErrorType;
-	totalResults: number;
-	startIndex: number;
+  cveItems: CveItem[];
+  loading: boolean;
+  errorMessage: string;
+  errorType?: NvdErrorType;
+  totalResults: number;
+  startIndex: number;
 };
 
 export const useNvdApi = (searchTerm: string, page: number = 0): UseNvdApi => {
-	const [cveItems, setCveItems] = useState<CveItem[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [errorMessage, setErrorMessage] = useState('');
-	const [totalResults, setTotalResults] = useState(0);
-	const [startIndex, setStartIndex] = useState(1);
-	const [errorType, setErrorType] = useState<NvdErrorType>();
+  const [cveItems, setCveItems] = useState<CveItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [totalResults, setTotalResults] = useState(0);
+  const [startIndex, setStartIndex] = useState(1);
+  const [errorType, setErrorType] = useState<NvdErrorType>();
 
-	const fetchData = useCallback(async () => {
-		try {
-			setLoading(true);
-			setErrorMessage('');
-			setTotalResults(0);
-			setStartIndex(0);
-			window.scrollTo({ top: 0 });
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMessage('');
+      setTotalResults(0);
+      setStartIndex(0);
+      window.scrollTo({ top: 0 });
 
-			// NVD documentation specifies startIndex to start at 0. https://nvd.nist.gov/developers/vulnerabilities
-			const nvdStartPosition = Math.max(page - 1, 0);
-			const result = await nvdApiUtils.getVulnerabilities(
-				searchTerm
-					? { keywordSearch: searchTerm, startIndex: nvdStartPosition }
-					: { startIndex: nvdStartPosition },
-			);
-			setCveItems(result.items);
-			setTotalResults(result.totalResults);
-			setStartIndex(result.startIndex);
-			setLoading(false);
-		} catch (error) {
-			setErrorMessage(
-				error instanceof NvdError
-					? error.message
-					: 'Unexpected error happened. Contact support.',
-			);
-			setErrorType(error instanceof NvdError ? error.type : 'error');
-			setLoading(false);
-		}
-	}, [searchTerm, page]);
+      // NVD documentation specifies startIndex to start at 0. https://nvd.nist.gov/developers/vulnerabilities
+      const nvdStartPosition = Math.max(page - 1, 0);
+      const result = await nvdApiUtils.getVulnerabilities(
+        searchTerm
+          ? { keywordSearch: searchTerm, startIndex: nvdStartPosition }
+          : { startIndex: nvdStartPosition },
+      );
+      setCveItems(result.items);
+      setTotalResults(result.totalResults);
+      setStartIndex(result.startIndex);
+      setLoading(false);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof NvdError
+          ? error.message
+          : 'Unexpected error happened. Contact support.',
+      );
+      setErrorType(error instanceof NvdError ? error.type : 'error');
+      setLoading(false);
+    }
+  }, [searchTerm, page]);
 
-	useEffect(() => {
-		fetchData();
-	}, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-	return {
-		cveItems,
-		loading,
-		errorType,
-		errorMessage,
-		totalResults,
-		startIndex,
-	};
+  return {
+    cveItems,
+    loading,
+    errorType,
+    errorMessage,
+    totalResults,
+    startIndex,
+  };
 };
