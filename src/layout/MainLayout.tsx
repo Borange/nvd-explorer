@@ -67,7 +67,7 @@ export default function MainLayout() {
       <title>{title}</title>
       <CssBaseline />
       {genericGlobalStyles}
-      <Container>
+      <Container sx={{ marginBottom: 12 }}>
         <Outlet />
       </Container>
       <Box
