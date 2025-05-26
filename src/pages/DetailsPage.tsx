@@ -93,7 +93,7 @@ export default function DetailsPage() {
 
             {cve?.metrics?.cvssMetricV2 && (
               <>
-                <Typography variant="h6" component="h3" sx={{ mt: 4, mb: 2 }}>
+                <Typography variant="h6" component="h2" sx={{ mt: 4, mb: 2 }}>
                   Metrics
                 </Typography>
                 <Table>
@@ -137,9 +137,12 @@ export default function DetailsPage() {
               </>
             )}
 
-            <Typography variant="h6" component="h3" sx={{ mt: 4 }}>
-              References
-            </Typography>
+            {references.length && (
+              <Typography variant="h6" component="h3" sx={{ mt: 4 }}>
+                References
+              </Typography>
+            )}
+
             <List dense={true} sx={{ listStyleType: 'disc' }}>
               {references.map((link, index) => {
                 return (

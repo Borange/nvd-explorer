@@ -106,7 +106,7 @@ describe('Start page', () => {
   });
 
   test('Renders pagination', async () => {
-    mockUseNvdApi.startIndex = 1;
+    mockUseNvdApi.startIndex = 0;
     mockUseNvdApi.totalResults = 301;
     setup();
 

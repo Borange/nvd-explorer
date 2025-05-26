@@ -5,11 +5,13 @@ import {
   Button,
   CircularProgress,
   Grid,
+  InputLabel,
   Pagination,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import { visuallyHidden } from '@mui/utils';
 import { useEffect, useRef, useState } from 'react';
 import { VulnerabilitiesListView } from '@/components/tables/VulnerabilitiesListView';
 import { useNvdApi } from '@/hooks/useNvdApi';
@@ -21,9 +23,8 @@ export default function StartPage() {
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get('keywordSearch') || '',
   );
-  const [page, setPage] = useState<number>(
-    Number(searchParams.get('startIndex')) || 1,
-  );
+  const [page, setPage] = useState(Number(searchParams.get('startIndex')) || 1);
+
   const {
     loading,
     cveItems,
@@ -62,7 +63,11 @@ export default function StartPage() {
           }}
           sx={{ mb: 4 }}
         >
+          <InputLabel htmlFor="search-field" sx={visuallyHidden}>
+            Search in NVD
+          </InputLabel>
           <TextField
+            id="search-field"
             type="search"
             placeholder="Enter a search term"
             variant="standard"
@@ -76,13 +81,23 @@ export default function StartPage() {
           <Button
             variant="contained"
             size="large"
-            endIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+            endIcon={
+              loading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <SearchIcon sx={{ marginLeft: { xs: 0 } }} />
+              )
+            }
             type="submit"
             disabled={loading}
             sx={{
               transition: 'all 0.5s ease-in-out',
               position: { xs: 'absolute', sm: 'relative' },
-              right: { xs: '0', sm: 'auto' },
+              right: { xs: 12, sm: 'auto' },
+              marginTop: 0,
+              '& .MuiButton-endIcon': {
+                marginLeft: { xs: 0, sm: 1.5 },
+              },
               '&.Mui-disabled': {
                 background: '#fff',
                 color: '#3f50b5',
@@ -110,6 +125,8 @@ export default function StartPage() {
               sx={{
                 opacity: loading ? 0.5 : 1,
                 transition: 'opacity 0.2s ease-in-out',
+                overflowX: 'auto',
+                mb: 8,
               }}
             >
               <VulnerabilitiesListView
@@ -127,7 +144,7 @@ export default function StartPage() {
               <Pagination
                 aria-label="Pagination"
                 count={Math.floor(totalResults / 100)}
-                page={startIndex}
+                page={startIndex + 1}
                 onChange={(_, number) => {
                   setPage(number);
                 }}
